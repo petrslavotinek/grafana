@@ -7,6 +7,7 @@ import 'jquery.flot.stack';
 import 'jquery.flot.stackpercent';
 import 'jquery.flot.fillbelow';
 import 'jquery.flot.crosshair';
+import 'jquery.flot.orderbars';
 import './jquery.flot.events';
 
 import $ from 'jquery';
@@ -38,6 +39,7 @@ coreModule.directive('grafanaGraph', function($rootScope, timeSrv) {
       var tooltip = new GraphTooltip(elem, dashboard, scope, function() {
         return sortedSeries;
       });
+      var minTimeStepOfSeries = 0;
 
       // panel events
       ctrl.events.on('panel-teardown', () => {
@@ -322,7 +324,8 @@ coreModule.directive('grafanaGraph', function($rootScope, timeSrv) {
             break;
           }
           default: {
-            options.series.bars.barWidth = getMinTimeStepOfSeries(data) / 1.5;
+            minTimeStepOfSeries = getMinTimeStepOfSeries(data);
+            options.series.bars.barWidth = minTimeStepOfSeries / 1.5;
             addTimeAxis(options);
             break;
           }
@@ -333,6 +336,10 @@ coreModule.directive('grafanaGraph', function($rootScope, timeSrv) {
         configureAxisOptions(data, options);
 
         sortedSeries = _.sortBy(data, function(series) { return series.zindex; });
+
+        if (shouldDisplaySideBySide()) {
+          displaySideBySide(sortedSeries, options);
+        }
 
         function callPlot(incrementRenderCounter) {
           try {
@@ -361,6 +368,25 @@ coreModule.directive('grafanaGraph', function($rootScope, timeSrv) {
         } else {
           callPlot(true);
         }
+      }
+
+      function displaySideBySide(sortedSeries, options) {
+        let barsSeries = _.filter(sortedSeries, series => series.bars && series.bars.show !== false);
+
+        let barWidth = (minTimeStepOfSeries / 1.5) / barsSeries.length;
+
+        for (let i = 0; i < barsSeries.length; i++) {
+          let series = sortedSeries[i];
+
+          series.bars.order = i + 1;
+          series.bars.barWidth = barWidth;
+        }
+      }
+
+      function shouldDisplaySideBySide() {
+        return panel.sideBySide
+          && !panel.stack
+          && panel.xaxis.mode === 'time';
       }
 
       function translateFillOption(fill) {

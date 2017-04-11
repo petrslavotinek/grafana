@@ -31,6 +31,7 @@ System.config({
     "jquery.flot.crosshair": "vendor/flot/jquery.flot.crosshair",
     "jquery.flot.fillbelow": "vendor/flot/jquery.flot.fillbelow",
     "jquery.flot.gauge": "vendor/flot/jquery.flot.gauge",
+    "jquery.flot.orderbars": "vendor/flot/jquery.flot.orderbars",
     "d3": "vendor/d3/d3.js"
   },
 
